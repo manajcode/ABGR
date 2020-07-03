@@ -1,0 +1,512 @@
+---
+title: "Solutions to ABGR"
+author: "Michael Najarro"
+date: "6/20/2020"
+output: html_document
+---
+
+# *Introduction*
+
+This report contains the questions and solutions I made over the summers and winters of 2017 and 2018 to the exercies found in **A Beginner's Guide to R,** by  Alain F. Zuur, Elena N. Ieno, and Erik H.W.G. Meesters (2009).
+
+Note that I originally wrote these solutions in an R script, but have ported them to this R-markdown file. Also, chapter 7 is partially completed and that chapter 8 is missing.
+
+# *Chapter 1*
+
+there are no problems in the first chapter.
+
+
+# *Chapter 2*
+
+## Exercise 1: The use of the c and sum functions.
+
+This exercise uses epidemiological data. Vicente et al. (2006) analysed data from observations of wild boar and red deer reared on a number of estates in Spain.
+
+The dataset contains information on tuberculosis (Tb) in both species, and on the parasite Elaphostrongylus cervi, which only infects red deer.
+
+In Zuur et al. (2009), Tb was modelled as a function of the continuous explanatory variable, length of the animal, denoted by LengthCT (CT is an abbreviation of cabeza-tronco, which is Spanish for head-body). Tb and Ecerviare shown as a vector of zeros and ones representing absence or presence of Tb and E. cervi larvae. Below, the first seven rows of the spreadsheet containing the deer data are given.
+
+
+### 1.a) Using the c function, create a variable that contains the length values of the seven animals.
+
+```{r}
+Pig.LengthCT = c(75, 85, 91.6, 95, NA, 105.5, 106)
+```
+
+
+#### 1.b) Also create a variable that contains the Tb values. Include the NAs.
+```{r}
+Pig.TbStatus = c(0, 0 ,1, NA, 0, 0 ,0)
+```
+
+
+### 1.c) What is the average length of the seven animals?
+```{r}
+AvgLength = sum(Pig.LengthCT, na.rm = TRUE)/7
+```
+
+
+## Exercise 2): The use of the cbind function using epidemiological data.
+
+We continue with the deer from Exercise 1. First create variables Farm and Month that contain the relevant information. Note that Farm is a string of characters. 
+
+### 2.a) Use the cbind command to combine month, length, and Tb data, and store the results in the variable, Boar. Make sure that you can extract rows, columns, and elements of Boar. 
+
+```{r}
+Farm = c("MO", "MO", "MO", "MO", "LN", "SE", "QM")
+Month = c(11, 07, 07, NA, 09, 09, 11)
+Boar = cbind(Month, Pig.LengthCT, Pig.TbStatus)
+```
+
+
+### 2.b) Use the dim, nrow, and ncol functions to determine the number of animals and variables in Boar.
+
+```{r}
+dim(Boar)
+nrow(Boar)
+ncol(Boar)
+```
+
+
+## Exercise 3): The use of the vector function using epidemiological data.
+
+We continue with the deer from Exercise 1. Instead of the cfunction that you used in Exercise 2 to combine the Tb data, can you do the same with the vectorfunction? Give the vector a different name, for example, Tb2.
+
+```{r}
+TbStatus2 = vector(length = 7)
+TbStatus2[1] = 0
+TbStatus2[2] = 0
+TbStatus2[3] = 1
+TbStatus2[4] = NA
+TbStatus2[5] = 0
+TbStatus2[6] = 0
+TbStatus2[7] = 0
+TbStatus2
+```
+
+
+## Exercise 4): Working with a matrix.
+
+Create the following matrix in R and determine its transpose, its inverse, and multiple D with its inverse (the outcome should be the identity matrix).
+
+```{r}
+D = matrix(nrow = 3, ncol = 3)
+D[,1] = c(1, 4, 2)
+D[,2] = c(2, 2, 3)
+D[,3] = c(3, 1, 0)
+
+#transpose D:
+t(D)
+
+#inverse of D:
+Inverse = solve(D)
+
+#multiply D to its inverse
+Inverse %*% D
+```
+
+ 
+#Exercise 5): The use of the data.frame and list functions using epidemiological data.
+
+### 5.a)
+We continue with the deer from Exercises 1 to 3. Make a data frame that contains all the data presented in the table in Exercise 1. Suppose that you decide to square root transform the length data. Add the square root transformed data to the data frame.
+
+```{r}
+Disease = data.frame(Farm,
+                 Month,
+                 year = c(00, 00, 01, NA, 03, 03, 02),
+                 Sex = c(1, 2, 2, 2, 1, 2, 2),
+                 Pig.LengthCT,
+                 Pig.EciStatus = c(0, 0, 0, NA, 0, 0, 0),
+                 TbStatus2,
+                 sqrt(Pig.LengthCT))
+Disease
+```
+
+
+### 5.b) Do the same exercise with a list instead of a data.frame.What are the differences?
+
+The two objects are completely different. The data frame provides a list of vectors of equal length, arranged in a table format so that the row corresponds to an observation with measured variables in the columns; the list provides a flexible, stored set of objects of unequal lengths and data types. 
+
+```{r}
+Year = c(00, 00, 01, NA, 03, 03, 02)
+sex = c(1, 2, 2, 2, 1, 2, 2)
+Eci = c(0, 0, 0, NA, 0, 0, 0)
+Pig.EciStatus = c(0, 0, 0, NA, 0, 0, 0)
+
+DiseaseL = list( Farm, Month, Year, sex, Pig.LengthCT, Pig.EciStatus, TbStatus2, sqrt(Pig.LengthCT))
+
+Disease
+DiseaseL
+```
+
+
+## Exercise 6): The use of the read.table and scan functions using deep sea research data.
+
+The file ISIT.xls contains the bioluminescent data that were used to make Fig. 1.6. See the paragraph above this graph for a description.
+
+
+### 6.a)
+Prepare the spreadsheet (there are 4–5 problems you will need to solve) and export the data to an ascii file. Import the data into R using first the read.table function and then the scan function. Use two different names under which to store the data.
+
+**Answer:**
+step 1: observing ISIT.xls problems
+ - data has 6 variables: sample number, Sample Depth, Sources, Station, Latitude, Longitude
+ - columns 1,2,4 are whole numbers the rest have decimal values
+ - colummns  and 6 have greater than 3 decimal place values.
+# - the first 2 rows are empty.
+# - there is an excel graph embedded in the file.
+
+ step 2: munge the excel file:
+ - standardized the data type of all columns so that they all have decimal values up to 3 digits.
+ - empty values are changed to 0.000.
+ - remove the graph
+ - move the column headers up to the first row; eliminate any empty rows.
+
+ step 3: save the excel file as a txt file in the soruce file.
+
+ step 4: now import the text file into R as a data frame using read.table.
+
+```{r}
+isit1 = read.table(file = "./ABGR_data/ISIT.txt", header = TRUE)
+is.data.frame(isit1)
+is.matrix(isit1)
+str(isit1)
+
+isit2 = scan(file="./ABGR_data/ISIT.txt", what = "character")
+is.data.frame(isit2)
+is.matrix(isit2)
+str(isit2)
+```
+
+
+### 6.b) What is the difference between them? Use the is.matrix and is.data.frame functions to answer this question.
+
+isit1 is an actual data frame, which contains multiple data types among its 14 coumns.
+
+Using the scan function, I created a new vector all of the values of the data from isit.txt in the form of a character string.
+
+## Exercise 7): The use of the read.table or scan function using epidemiological data.
+
+The file Deer.xls contains the deer data discussed in Exercise 1, but includes all animals. Export the data in the Excel file to an ascii file, and import it into R.
+
+```{r}
+Dear = read.table(file = "/home/mike/R/ABGR.summer2017/Deer.txt", header = TRUE)
+```
+
+
+# *Chapter 3*
+
+## Exercise 1): Using the read.table function and accessing variables from a data frame with epidemiological data.
+
+The file BirdFlu.xls contains the annual number of confirmed cases of human Avian Influenza A/(H5N1) for several countries reported to the World Health Organization (WHO). The data were taken from the WHO website (www.who.int/en/) and reproduced for educational purposes.
+
+ Prepare the spreadsheet and import these data into R. If you are a non-Windows user, start with the file BirdFlu.txt. Note that you will need to adjust the column names and some of the country names.
+ 
+ Use the names and str command in R to view the data. Print the number of bird flu cases in 2003. What is the total number of bird flu cases in 2003 and in 2005? Which country has had the most cases? Which country has had the least bird flu deaths?
+ 
+Using methods from Chapter 2, what is the totalnumber of bird flu cases per country? What is the total number of cases per year?
+
+**Answer:**
+I first manipulated text files by removing all commas, then replace  w/ tabs(4spaces).
+
+```{r}
+Cases = read.table(file = "./ABGR_data/BirdFluCases.txt", header = TRUE)
+names(Cases)
+str(Cases)
+```
+
+
+cases of flu for 03 and 05:
+
+```{r}
+Cases[1,]
+Cases[3,]
+```
+
+
+total number of cases for 03 and 05:
+
+```{r}
+sum(Cases[1,2:8])
+sum(Cases[3,2:8])
+```
+
+country with most cases: Indonesia
+```{r}
+Cases
+sum(Cases$Indonesia)
+sum(Cases[,8])
+```
+
+
+country with least cases: Bangladesh, Djibouti, Myanmar, Nigeria
+
+```{r}
+Cases
+print(colnames(Cases))
+sum(Cases[,3])
+sum(Cases[,6])
+sum(Cases[,11])
+sum(Cases[,12])
+```
+
+
+total number of bird cases per country: see df 
+
+```{r}
+country = c(colnames(Cases))
+country
+country = country[-1]
+country
+totalcases = c(sum(Cases[,2]),
+               sum(Cases[,3]),
+               sum(Cases[,4]),
+               sum(Cases[,5]),
+               sum(Cases[,6]),
+               sum(Cases[,7]),
+               sum(Cases[,8]),
+               sum(Cases[,9]),
+               sum(Cases[,10]),
+               sum(Cases[,11]),
+               sum(Cases[,12]),
+               sum(Cases[,13]),
+               sum(Cases[,14]),
+               sum(Cases[,15]),
+               sum(Cases[,16]))
+
+CasesPerCountry = data.frame(totalcases, country)
+CasesPerCountry
+```
+
+
+total number of cases per year:
+
+```{r}
+year = c(sum(Cases[1,]),
+        sum(Cases[2,]),
+         sum(Cases[3,]),
+         sum(Cases[4,]),
+         sum(Cases[5,]),
+         sum(Cases[6,])
+  )
+year
+
+rowSums(Cases)
+```
+
+
+## Exercise 2): Using the read.table function and accessing subsets of a data frame with deep sea research data.
+
+If you have not completed Exercise 6 in Chapter 2, do so and import the data from the ISIT.xls file.
+
+In R, extract the data from station 1. How many observations were made at this station? What are the minimum, median, mean, and maximum sampled depth at station 1? What are the minimum, median, mean, and maximum sampled depth at station 2? At station 3?
+
+Identify any stations with considerably fewer observations. Create a new data frame omitting these stations.
+
+Extract the data from 2002. Extract the data from April (of all years). Extract the data that were measured at depths greater than 2000 meters (from all years and months). Show the data according to increasing depth values. Show the data that were measured at depths greater than 2000 meters in April.
+
+**Answer**
+
+step 1: import data from isit file, using read.table on the txt file.
+
+```{r}
+isit1 = read.table(file = "/home/mike/R/ABGR.summer2017/ISIT.txt", header = TRUE)
+```
+
+
+step 2: extract data from station 1. var station is the 3rd station/column
+
+```{r}
+#2.a: order the data by station #.
+station1 = order(isit1$Station)
+
+#2.b: create a df that stores the newly arranged df.
+New.isit = isit1[station1, ]
+str(New.isit)
+
+#2.c: now extract rows from new.isit for when the the station column = 1.
+SD1 = New.isit[New.isit$Station == 1, ]
+str(SD1)
+
+#2.d.: get the number of observations of sample depth for when station =1.
+nrow(SD1) #38
+```
+
+
+step 3: find the minimum, median, mean, and maximum sampled depth at station 1.
+
+```{r}
+min(SD1$SampleDepth) # 517
+median(SD1$SampleDepth) # 2520
+mean(SD1$SampleDepth) # 2548.763
+max(SD1$SampleDepth) # 3939
+```
+
+
+step 4: extract data from station 2. var station is the 3rd station/column
+
+```{r}
+# 4.a: now extract rows from new.isit for when the the station column = 2.
+SD2 = New.isit[New.isit$Station == 2, ]
+str(SD2)
+
+#4.b: get the number of observations of sample depth for when station = 2.
+nrow(SD2) #44
+
+#4.c: find the minimum, median, mean, and maximum sampled depth at station 1.
+min(SD2$SampleDepth) # 501
+median(SD2$SampleDepth) # 3290
+mean(SD2$SampleDepth) # 2759.523
+max(SD2$SampleDepth) # 3916
+```
+
+
+step 5: extract data from station 3. var station is the 3rd station/column
+
+```{r}
+#5.a extract rows from new.isit for when the the station column = 3.
+SD3 = New.isit[New.isit$Station == 3, ]
+str(SD3)
+
+#5.b: get the number of observations of sample depth for when station = 2.
+nrow(SD3) #27
+
+#5.c: find the minimum, median, mean, and maximum sampled depth at station 1.
+min(SD3$SampleDepth) # 516
+median(SD3$SampleDepth) # 2169
+mean(SD3$SampleDepth) # 2310.815
+max(SD3$SampleDepth) # 3965
+```
+
+
+step 6: identify any stations with considerably fewer observations. create a new data frame that omits these stations.
+```{r}
+
+#6.a: first figure out how many other stations there are using unique on new.isit
+unique(New.isit$Station) #19 total, covered 1-3. 
+
+#6.b now, create a new isit file to work with (full data set) and another one that has statiosn 1- 3.
+#Copy.isit = New.isit
+new.isit2 = Reduce(function(x, y) merge(x, y, all=TRUE), list(SD1, SD2, SD3))
+station.ar = order(new.isit2$Station)
+new.isit2 = new.isit2[station.ar, ]
+str(new.isit2)
+nrow(new.isit2)
+
+#6.c Determine, for each station, how many samples (rows of data) exist.
+SD.4 = New.isit[New.isit$Station == 4, ]
+SD.5 = New.isit[New.isit$Station == 5, ]
+SD.6 = New.isit[New.isit$Station == 6, ]
+SD.7 = New.isit[New.isit$Station == 7, ]
+SD.8 = New.isit[New.isit$Station == 8, ]
+SD.9 = New.isit[New.isit$Station == 9, ]
+SD.10 = New.isit[New.isit$Station == 10, ]
+SD.11 = New.isit[New.isit$Station == 11, ]
+SD.12 = New.isit[New.isit$Station == 12, ]
+SD.13 = New.isit[New.isit$Station == 13, ]
+SD.14 = New.isit[New.isit$Station == 14, ]
+SD.15 = New.isit[New.isit$Station == 15, ]
+SD.16 = New.isit[New.isit$Station == 16, ]
+SD.17 = New.isit[New.isit$Station == 17, ]
+SD.18 = New.isit[New.isit$Station == 18, ]
+SD.19 = New.isit[New.isit$Station == 19, ]
+
+nrow(SD.4) #5
+nrow(SD.5) #12
+nrow(SD.6) #27
+nrow(SD.7) #35
+nrow(SD.8) #34
+nrow(SD.9) #54
+nrow(SD.10) #55
+nrow(SD.11) #53
+nrow(SD.12) #40
+nrow(SD.13) #56
+nrow(SD.14) #58
+nrow(SD.15) #56
+nrow(SD.16) #51
+nrow(SD.17) #47
+nrow(SD.18) #48
+nrow(SD.19) #49
+
+#6.d For the stations with observations greater than 27 (lowest #of sampels from stations 1-3)
+#   , merge the data into 1 new data frame using rbind, and save it to d.f. "big.data"
+Big.Data = data.frame(rbind(new.isit2, SD.8, SD.9, SD.10, SD.11, SD.12, SD.12, SD.13, SD.14,
+                            SD.15, SD.16, SD.17, SD.18, SD.19))
+
+unique(Big.Data$Station)
+```
+
+
+step 7: extract all data for year 2002.
+
+```{r}
+#7.a: year options in data set:
+unique(New.isit$Year) #01 or 02
+
+#7.b: extract the new.isit data (original data set) by variable year.
+twotwo = New.isit[New.isit$Year == 2002, ]
+str(twotwo)
+unique(twotwo$Year)
+```
+
+
+Step 8: extract the data for the month of April from all years.
+
+```{r}
+#8.a extract april only data
+unique(New.isit$Month) #months are integers; the 4th month is april.
+April = New.isit[New.isit$Month == 4, ]
+str(April)
+unique(April$Month)
+
+#8.b show the data is across all years
+unique(April$Year) #it only exists for 2001 because that is the only year in which samples came from april.
+```
+
+
+Step 9: Show the data according to increasing depth values- use function order!
+```{r}
+depth = order(April$SampleDepth, decreasing = FALSE)
+depth.value = April[depth, ]
+str(depth.value)
+```
+
+ 
+## Exercise 3): Using the write.table function with deep sea research data.
+
+In the final step of the previous exercise, data measured at depths greater than 2000 meters in April were extracted. Export these data to a new ascii file.
+
+For the oceanic data set where the sample depths are > 2000 for the month of april, export the data into a text file.
+
+```{r}
+write.table(depth.value, file = "AprilDeepSamples.txt", sep = ",", quote = TRUE, append = FALSE, na = "NA")
+```
+ 
+
+## Exercise 4): Using the factor function and accessing subsets of a data frame with deep sea research data.
+
+**Answer**
+Stations 1 through 5 were sampled in April 2001, stations 6 through 11 in August 2001, stations 12 through 15 in March 2002, and stations 16 through 19 in October 2002. Create two new variables in R to identify the month and the year. Note that these are factors. Do this by adding the new variables inside the data frame.
+
+Create two new variables in R to identify the month and the year. Note: that these are factors. Do this by adding the new variables inside the data frame.
+
+```{r}
+#4.a create the factor column for months. use a nominal ranking system of months.
+New.isit$fMonth = factor(New.isit$Month, levels = c(3, 4, 8, 10),
+                         labels = c("Mar", "Apr", "Aug", "Oct"))
+
+#4.b create the factor column for year. in this case, make it a numerical ranking system 1 = 01 and 2 = 02.
+unique(New.isit$Year)
+New.isit$fYear = factor(New.isit$Year, levels = c(2001, 2002), labels = c("1", "2"))
+
+str(New.isit)
+unique(New.isit$fMonth)
+New.isit$fMonth
+```
+
+
+# *Chapter 4*
+# *Chapter 5*
+# *Chapter 6*
+# *Chapter 7*
